@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  password   String
+  role       String    @default("user")
+  
+  logs       TimeLog[]
+
+  entities        UserEntity[] 
+  
+  @@map("users")
+}
+
+model TimeLog {
+  id               Int      @id @default(autoincrement())
+  
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id])
+  
+  projectIdentifier String   
+  taskIdentifier    String?  
+  mondayClientId    String?  
+  
+  durationHours    Float
+  date             DateTime @default(now())
+  
+  @@map("time_logs")
+}
+
+model Plugin {
+  id               Int      @id @default(autoincrement())
+  
+  key              String   @unique 
+  
+  name             String   
+  
+  remoteUrl        String   
+  
+  rolesAllowed     String[] 
+  
+  isActive         Boolean  @default(true)
+  
+  @@map("plugins")
+}
+
+model Entity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // e.g., "Tech Innovators Inc."
+  // Other tenant-level settings (e.g., subscription tier)
+  users       UserEntity[] // Relation to users
+}
+
+model UserEntity {
+  userId      Int
+  entityId    Int
+  
+  user        User   @relation(fields: [userId], references: [id])
+  entity      Entity @relation(fields: [entityId], references: [id])
+
+  @@id([userId, entityId])
+}

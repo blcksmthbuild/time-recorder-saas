@@ -1,0 +1,17 @@
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+:root {
+  /* keep your theme vars; don't set width here */
+  color-scheme: light dark;
+  /* ... */
+}
+
+body {
+  display: flex;
+  min-height: 100vh; /* optional, keeps full height on mobile */
+}
