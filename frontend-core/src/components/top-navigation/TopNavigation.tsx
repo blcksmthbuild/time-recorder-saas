@@ -5,29 +5,68 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import { useAuth } from "../../auth/useAuth";
 import { useNavigate } from "react-router-dom";
+import { usePluginRegistry } from "../plugins/usePluginRegistry";
 
 export const TopNavigation = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+
+  const { data: registryMap, isLoading } = usePluginRegistry();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  const menuPlugins = registryMap
+    ? Object.entries(registryMap).map(([key, { name }]) => ({
+        key,
+        name,
+        path: `/plugin/${key}`,
+      }))
+    : [];
+
+  console.log("--------------------------------");
+  console.log("MENU PLUGINS", menuPlugins);
+  console.log("--------------------------------");
+
   return (
     <AppBar position="static" color="primary">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        {/* <Typography
+          variant="h6"
+          component="div"
+          sx={{ cursor: "pointer" }}
+          onClick={() => navigate("/")}
+        >
           Time Recorder
-        </Typography>
+        </Typography> */}
+
+        <Box sx={{ flexGrow: 1, ml: 4 }}>
+          {isLoading ? (
+            <Typography variant="caption" color="inherit">
+              Loading...
+            </Typography>
+          ) : (
+            menuPlugins.map((plugin) => (
+              <Button
+                key={plugin.key}
+                color="inherit"
+                onClick={() => navigate(plugin.path)}
+              >
+                {plugin.name}
+              </Button>
+            ))
+          )}
+        </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {user ? (
             <Typography variant="body2" component="div">
-              {user.email}
+              {user.id} (Role: {user.role})
             </Typography>
           ) : null}
+
           <Button color="inherit" onClick={handleLogout}>
             Logout
           </Button>

@@ -44,7 +44,9 @@ export const Login = () => {
 
   const getErrorMessage = () => {
     if (loginMutation.isError) {
-      return `Login failed. Please check your credentials and try again. ${loginMutation.error}`;
+      return `Login failed. 1 ${
+        loginMutation.error.message
+      } +  4 ${loginMutation.toString()}`;
     }
 
     return null;

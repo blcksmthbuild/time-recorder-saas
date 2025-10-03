@@ -1,8 +1,8 @@
 import cron from "node-cron";
 import { PrismaClient } from "@prisma/client";
 import type { FastifyInstance } from "fastify";
-import { sendTo } from "../module/email.ts";
-import { getDailyReport } from "../module/reports.ts";
+import { sendTo } from "../module/email";
+import { getDailyReport } from "../module/reports";
 
 const prisma = new PrismaClient();
 

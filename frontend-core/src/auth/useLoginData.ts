@@ -18,10 +18,12 @@ interface LoginResponse {
 const loginUser = (
   credentials: LoginCredentials
 ): Promise<AxiosResponse<LoginResponse>> => {
-  return axios.post<LoginResponse>(
+  const response = axios.post<LoginResponse>(
     `${FASTIFY_API_URL}/auth/login`,
     credentials
   );
+
+  return response;
 };
 
 export const useLoginData = (

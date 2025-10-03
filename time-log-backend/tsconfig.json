@@ -7,9 +7,9 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "NodeNext", // Vagy "ESNext" vagy "NodeNext"
-    "moduleResolution": "NodeNext", // Vagy "node"
-    "target": "ES2022",
+    "module": "CommonJS",
+    "target": "ES2020",
+    "moduleResolution": "Node",
     "types": [],
     // For nodejs:
     // "lib": ["esnext"],
@@ -36,14 +36,13 @@
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true
+    "esModuleInterop": true
+    // "allowImportingTsExtensions": true,
+    // "emitDeclarationOnly": true
   },
   "exclude": ["dist", "node_modules", "eslint.config.*"],
   "include": ["src/**/*"]

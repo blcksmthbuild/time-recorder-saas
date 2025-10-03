@@ -4,12 +4,12 @@ export const Dashboard = (): React.ReactNode => {
   console.log("--------------------------------");
   console.log("DASHBOARD COMPONENT RENDERED");
   console.log("--------------------------------");
-  const auth = useAuth();
+  const { user, logout } = useAuth();
   return (
     <div className="container">
       <div>
-        <h1>Welcome! {auth.user?.email}</h1>
-        <button onClick={() => auth.logout()} className="btn-submit">
+        <h1>Welcome! {user?.id}</h1>
+        <button onClick={() => logout()} className="btn-submit">
           logout
         </button>
       </div>

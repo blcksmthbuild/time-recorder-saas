@@ -9,9 +9,9 @@ import type {
   RegisterBody,
   RegisterErrorResponse,
   RegisterSuccessResponse,
-} from "../types.ts";
-import type { Role } from "../types.ts";
-import { isAuthenticated } from "../utils/auth-hooks.ts";
+} from "../types";
+import type { Role } from "../types";
+import { isAuthenticated } from "../utils/auth-hooks";
 
 const prisma = new PrismaClient();
 
@@ -80,39 +80,46 @@ export async function authRoutes(server: FastifyInstance) {
   // 2. LOGIN (POST /api/v1/auth/login)
   // -------------------------------------------------------------------
   server.post("/login", async (request, reply) => {
-    const { email, password } = request.body as LoginBody;
+    try {
+      const { email, password } = request.body as LoginBody;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
 
-    if (!user) {
-      return reply.status(401).send({
-        message: "Invalid credentials.",
+      if (!user) {
+        return reply.status(401).send({
+          message: "No user found with this email.",
+        } as LoginErrorResponse);
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return reply.status(401).send({
+          message: "Invalid password.",
+        } as LoginErrorResponse);
+      }
+
+      const token = server.jwt.sign({
+        id: user.id,
+        role: user.role as Role,
+      });
+
+      reply.status(200).send({
+        message: "Login successful.",
+        user: {
+          token,
+          userId: user.id,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      server.log.error({ error }, "Error during login.");
+      reply.status(500).send({
+        message: "An error occurred during login. " + error,
       } as LoginErrorResponse);
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return reply.status(401).send({
-        message: "Invalid password.",
-      } as LoginErrorResponse);
-    }
-
-    const token = server.jwt.sign({
-      id: user.id,
-      role: user.role as Role,
-    });
-
-    reply.status(200).send({
-      message: "Login successful.",
-      user: {
-        token,
-        userId: user.id,
-        role: user.role,
-      },
-    });
   });
 
   // -------------------------------------------------------------------

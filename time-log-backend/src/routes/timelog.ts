@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
-import { isAdmin, isAuthenticated } from "../utils/auth-hooks.ts";
-import type { ProjectBody, TaskBody, TimeLogBody } from "../types.ts";
+import { isAdmin, isAuthenticated } from "../utils/auth-hooks";
+import type { ProjectBody, TaskBody, TimeLogBody } from "../types";
 import { PrismaClient } from "@prisma/client";
-import { getReportsByUser } from "../module/reports.ts";
+import { getReportsByUser } from "../module/reports";
 
 const prisma = new PrismaClient();
 

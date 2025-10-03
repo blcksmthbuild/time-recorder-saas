@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { PrismaClient } from "@prisma/client";
 import type { Plugin } from "@prisma/client";
-import { isAuthenticated, isAdmin } from "../utils/auth-hooks.ts";
-import type { PluginBody, PluginSuccessResponse } from "../types.ts";
+import { isAuthenticated, isAdmin } from "../utils/auth-hooks";
+import type { PluginBody, PluginSuccessResponse } from "../types";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const prisma = new PrismaClient();

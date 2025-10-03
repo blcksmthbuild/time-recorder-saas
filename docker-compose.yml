@@ -1,0 +1,74 @@
+version: "3.8"
+
+services:
+  # ----------------------------------------------------
+  # 1. CORE SHELL (Host Frontend)
+  # ----------------------------------------------------
+  core-shell:
+    build:
+      context: ./frontend-core
+      dockerfile: Dockerfile
+      # Átadjuk a Fastify URL-t a build időben
+      environment:
+        VITE_TIMELOG_ENTRY: http://timelog-plugin/assets/remoteEntry.js
+      args:
+        VITE_FASTIFY_API_URL: http://localhost:3000/api/v1
+    container_name: core-shell
+    ports:
+      - "80:80" # Hozzáférés a Core Shell-hez a http://localhost:80 címen
+    depends_on:
+      - fastify-backend
+      - timelog-plugin
+
+  # ----------------------------------------------------
+  # 2. TIMELOG PLUGIN (Remote Frontend / Micro Frontend)
+  # ----------------------------------------------------
+  timelog-plugin:
+    build:
+      context: ./timelog-plugin
+      dockerfile: Dockerfile
+    container_name: timelog-plugin
+    # Ezen a belső hálózati porton fut a NGINX, és ezen a címen éri el a Core Shell
+    expose:
+      - "80"
+    # Fontos: A Vite configban beállított 8081-es portot most az NGINX 80-as portjára képeztük le!
+    # A Core Shell Vite configjában lévő URL-t frissítened kell erre a belső hálózati névre:
+    # timelog_plugin_app: 'timelog_plugin_app@http://timelog-plugin/assets/remoteEntry.js'
+    # Ezt a lépést kézzel kell elvégezned a frontend-core/vite.config.ts-ben!
+
+  # ----------------------------------------------------
+  # 3. FASTIFY BACKEND (TimeLog/Auth API)
+  # ----------------------------------------------------
+  fastify-backend:
+    build:
+      context: ./time-log-backend # Feltételezett elérési út
+      dockerfile: Dockerfile
+    container_name: fastify-backend
+    ports:
+      - "3000:3000" # Hozzáférés a Fastify API-hoz a http://localhost:3000 címen
+    environment:
+      # Fontos: A Fastify belső DB-címe a szolgáltatásnév lesz
+      DATABASE_URL: postgresql://user:password@db:5432/timelogdb
+      NODE_ENV: production
+      JWT_SECRET: "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.owv7q9nVbW5tqUezF_G2nHTra-ANW3HqW9epyVwh08Y-Z-FKsnG8eBIpC4GTfTVU"
+    command: sh -c "npx prisma migrate deploy && npm start"
+    depends_on:
+      - db
+
+  # ----------------------------------------------------
+  # 4. POSTGRESQL DATABASE
+  # ----------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: timelogdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

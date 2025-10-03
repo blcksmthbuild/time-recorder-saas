@@ -3,10 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import Fastify from "fastify";
 import fastifyJwt, { type Secret } from "@fastify/jwt";
 import fastifyCors from "@fastify/cors";
-import { authRoutes } from "./routes/auth.ts";
-import { pluginRegistryRoutes } from "./routes/pluginRegistry.ts";
-import { timelogRoutes } from "./routes/timelog.ts";
-import { startDailyReportJob } from "./jobs/dailyReport.ts";
+import { authRoutes } from "./routes/auth";
+import { pluginRegistryRoutes } from "./routes/pluginRegistry";
+import { timelogRoutes } from "./routes/timelog";
+import { startDailyReportJob } from "./jobs/dailyReport";
 
 const prisma = new PrismaClient();
 
@@ -15,8 +15,19 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const startServer = async () => {
   const server = Fastify({ logger: true });
 
+  const allowedOrigins = [
+    "http://localhost:5173", // Core Shell (Frontend)
+    "http://localhost:8081", // Time Log Plugin (Micro Frontend)
+  ];
+
   server.register(fastifyCors, {
-    origin: true, // Allow all origins in development
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"), false);
+      }
+    },
     credentials: true,
   });
 
