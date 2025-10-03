@@ -4,7 +4,7 @@
 
     export default defineConfig(({ mode }) => {
       const env = loadEnv(mode, process.cwd(), "");
-      const remoteUrl = env.VITE_TIMELOG_ENTRY ? env.VITE_TIMELOG_ENTRY : "http://timelog-plugin:80/dist/assets/remoteEntry.js";
+      const remoteUrl = env.VITE_TIMELOG_ENTRY ? env.VITE_TIMELOG_ENTRY : "http://localhost:8082/dist/assets/remoteEntry.js";
 
       console.log("--------------------------------");
       console.log("TIMELOG REMOTE URL", remoteUrl);

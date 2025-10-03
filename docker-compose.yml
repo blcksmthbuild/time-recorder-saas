@@ -6,7 +6,7 @@ services:
   # ----------------------------------------------------
   core-shell:
     environment:
-      VITE_TIMELOG_ENTRY: http://timelog-plugin:80/dist/assets/remoteEntry.js
+      VITE_TIMELOG_ENTRY: http://localhost:8082/dist/assets/remoteEntry.js
     build:
       context: ./frontend-core
       dockerfile: Dockerfile
@@ -31,6 +31,8 @@ services:
     # Ezen a belső hálózati porton fut a NGINX, és ezen a címen éri el a Core Shell
     expose:
       - "80"
+    ports:
+      - "8082:80"
     # Fontos: A Vite configban beállított 8081-es portot most az NGINX 80-as portjára képeztük le!
     # A Core Shell Vite configjában lévő URL-t frissítened kell erre a belső hálózati névre:
     # timelog_plugin_app: 'timelog_plugin_app@http://timelog-plugin/assets/remoteEntry.js'
