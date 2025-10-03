@@ -15,19 +15,8 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const startServer = async () => {
   const server = Fastify({ logger: true });
 
-  const allowedOrigins = [
-    "http://localhost:5173", // Core Shell (Frontend)
-    "http://localhost:8081", // Time Log Plugin (Micro Frontend)
-  ];
-
   server.register(fastifyCors, {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"), false);
-      }
-    },
+    origin: true,
     credentials: true,
   });
 

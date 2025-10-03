@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import federation from "@originjs/vite-plugin-federation";
 
-const PLUGIN_PORT = 8081;
+const PLUGIN_PORT = 8082;
 
 export default defineConfig({
   plugins: [
@@ -26,5 +26,6 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
+    outDir: "dist",
   },
 });

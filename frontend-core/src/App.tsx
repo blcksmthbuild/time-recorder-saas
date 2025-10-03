@@ -20,14 +20,6 @@ const AppRoutes = () => {
   const registryQuery = usePluginRegistry();
   const registryMap = registryQuery.data || {};
 
-  if (registryQuery.isLoading) {
-    return <div>Loading plugins...</div>;
-  }
-
-  if (registryQuery.isError) {
-    return <div>Error loading plugins.</div>;
-  }
-
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
@@ -43,19 +35,20 @@ const AppRoutes = () => {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          {Object.keys(registryMap).map((key) => (
-            <Route
-              key={key}
-              path={`plugin/${key}`}
-              element={
-                <Suspense
-                  fallback={<div>{registryMap[key].name} Loading...</div>}
-                >
-                  <RemotePluginWrapper pluginKey={key} />
-                </Suspense>
-              }
-            />
-          ))}
+          {Object.keys(registryMap)?.length > 0 &&
+            Object.keys(registryMap).map((key) => (
+              <Route
+                key={key}
+                path={`plugin/${key}`}
+                element={
+                  <Suspense
+                    fallback={<div>{registryMap[key].name} Loading...</div>}
+                  >
+                    <RemotePluginWrapper pluginKey={key} />
+                  </Suspense>
+                }
+              />
+            ))}
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>

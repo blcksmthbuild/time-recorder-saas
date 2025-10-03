@@ -5,12 +5,12 @@ services:
   # 1. CORE SHELL (Host Frontend)
   # ----------------------------------------------------
   core-shell:
+    environment:
+      VITE_TIMELOG_ENTRY: http://timelog-plugin:80/dist/assets/remoteEntry.js
     build:
       context: ./frontend-core
       dockerfile: Dockerfile
       # Átadjuk a Fastify URL-t a build időben
-      environment:
-        VITE_TIMELOG_ENTRY: http://timelog-plugin/assets/remoteEntry.js
       args:
         VITE_FASTIFY_API_URL: http://localhost:3000/api/v1
     container_name: core-shell

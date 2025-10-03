@@ -1,7 +1,9 @@
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense } from "react";
 
-const PLUGIN_MODULES: Record<string, string> = {
-  timeLog: "timelog_plugin_app/TimeLogApp",
+type RemoteComponent = React.LazyExoticComponent<React.ComponentType<unknown>>;
+
+const REMOTE_COMPONENTS: Record<string, RemoteComponent> = {
+  timelog: React.lazy(() => import("timelog_plugin_app/TimeLogApp")),
 };
 
 interface RemotePluginWrapperProps {
@@ -14,24 +16,17 @@ const RemotePluginWrapper: React.FC<RemotePluginWrapperProps> = ({
   console.log("--------------------------------");
   console.log("PLUGIN KEY", pluginKey);
   console.log("--------------------------------");
-  const modulePath = PLUGIN_MODULES[pluginKey];
+  const normalizedKey = pluginKey.toLowerCase();
+  const RemoteComponent = REMOTE_COMPONENTS[normalizedKey];
 
-  const RemoteComponent = useMemo(() => {
-    return React.lazy(() => import(/* @vite-ignore */ modulePath));
-  }, [modulePath]);
-
-  console.log("--------------------------------");
-  console.log("MODULE PATH", modulePath);
-  console.log("--------------------------------");
-
-  if (!modulePath) {
+  if (!RemoteComponent) {
     return (
-      <div>Hiba: A '{pluginKey}' plug-in nem található a helyi térképen!</div>
+      <div>Error: The '{pluginKey}' plugin is not found on the local map!</div>
     );
   }
 
   return (
-    <Suspense fallback={<div>Remote Plugin betöltése...</div>}>
+    <Suspense fallback={<div>Remote Plugin loading...</div>}>
       <RemoteComponent />
     </Suspense>
   );
