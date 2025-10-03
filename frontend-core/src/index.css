@@ -7,8 +7,7 @@ body,
 
 :root {
   /* keep your theme vars; don't set width here */
-  color-scheme: light dark;
-  /* ... */
+  color-scheme: light;
 }
 
 body {

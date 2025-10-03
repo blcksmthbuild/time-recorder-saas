@@ -9,7 +9,7 @@ import {
 import styled from "@emotion/styled";
 import { useAuth } from "../../auth/useAuth";
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 const CenteredContainer = styled(Box)({
   minHeight: "100vh",
@@ -34,23 +34,12 @@ export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { token } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const isLoading = loginMutation.isPending;
 
   const handleLogin = (email: string, password: string) => {
-    console.log("--------------------------------");
-    console.log("LOGIN", email, password);
-    console.log("--------------------------------");
-    loginMutation.mutate(
-      { email, password },
-      {
-        onSuccess: () => {
-          navigate("/dashboard");
-        },
-      }
-    );
+    loginMutation.mutate({ email, password });
   };
 
   const getErrorMessage = () => {
@@ -62,23 +51,17 @@ export const Login = () => {
   };
 
   console.log("--------------------------------");
-  console.log("TOKEN", token);
+  console.log("TOKEN", user?.token);
   console.log("--------------------------------");
-  if (token) {
-    return <Navigate to="/dashboard" />;
+
+  if (user?.token) {
+    return <Navigate to="/select-entity" />;
   }
 
   return (
     <CenteredContainer>
       <FormPaper elevation={3}>
-        <Box
-          component="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleLogin(email, password);
-          }}
-          noValidate
-        >
+        <Box component="form">
           <Typography variant="h5" component="h1" gutterBottom>
             Sign in
           </Typography>
@@ -115,12 +98,12 @@ export const Login = () => {
           )}
 
           <Button
-            type="submit"
             variant="contained"
             color="primary"
             fullWidth
             sx={{ mt: 2 }}
             disabled={isLoading}
+            onClick={() => handleLogin(email, password)}
           >
             {isLoading ? (
               <>

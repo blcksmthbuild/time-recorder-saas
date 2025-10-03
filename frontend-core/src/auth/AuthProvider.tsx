@@ -1,59 +1,68 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { AuthContext, loadInitialUser } from "./AuthContext";
-import { useLoginMutation } from "./useLoginMutation";
-import { useEffect, useState } from "react";
+import { AuthContext, loadInitialUser, type UserData } from "./AuthContext";
+import { useState } from "react";
+import { useLoginData } from "./useLoginData";
 
 const AUTH_STORAGE_KEY = import.meta.env.VITE_AUTH_STORAGE_KEY;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
   const [authData, setAuthData] = useState(loadInitialUser);
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const loginMutation = useLoginMutation();
 
-  useEffect(() => {
-    if (loginMutation.isSuccess) {
-      const { token, id, email, role, entityId } = loginMutation.data.user;
+  const loginMutation = useLoginData({
+    mutationKey: ["user"],
+    onSuccess: (data) => {
+      const { token, userId, role } = data.data.user;
+      console.log("--------------------------------");
+      console.log("LOGIN MUTATION DATA", data.data);
+      console.log("--------------------------------");
 
-      setAuthData({ user: { id, email, role, entityId }, token });
+      setAuthData({
+        user: {
+          id: userId,
+          role: role as "admin" | "user",
+          selectedEntityId: null,
+          token,
+        },
+      });
 
       localStorage.setItem(
         AUTH_STORAGE_KEY,
-        JSON.stringify({ user: { id, email, role, entityId }, token })
+        JSON.stringify({
+          user: {
+            id: userId,
+            role: role as "admin" | "user",
+            selectedEntityId: null,
+            token,
+          },
+          token,
+        })
       );
 
       queryClient.invalidateQueries({ queryKey: ["user"] });
-    }
-
-    if (loginMutation.isError) {
-      console.log("--------------------------------");
-      console.log("LOGIN ERROR");
-      console.log("--------------------------------");
-      setAuthData({ user: null, token: null });
+    },
+    onError: () => {
+      setAuthData({ user: null });
       localStorage.removeItem(AUTH_STORAGE_KEY);
       queryClient.invalidateQueries({ queryKey: ["user"] });
-    }
-  }, [
-    loginMutation.isSuccess,
-    loginMutation.isError,
-    queryClient,
-    loginMutation.data,
-    loginMutation.error,
-  ]);
+    },
+  });
 
   const logout = () => {
-    setAuthData({ user: null, token: null });
+    setAuthData({ user: null });
     localStorage.removeItem(AUTH_STORAGE_KEY);
     queryClient.invalidateQueries({ queryKey: ["user"] });
   };
 
   const value = {
     user: authData.user,
-    token: authData.token,
     loginMutation,
+    setAuthData: (value: UserData) => {
+      setAuthData({
+        user: value,
+      });
+    },
     logout,
-    mode,
-    setMode,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

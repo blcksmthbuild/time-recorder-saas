@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoutes";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { Login } from "./components/login/Login";
+import { DashboardContainer } from "./components/dashboard-container/DashboardContainer";
+import { SelectEntity } from "./components/select-entity/SelectEntity";
 
 const AppContainer = styled.div`
   display: flex;
@@ -18,7 +20,15 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/select-entity" element={<SelectEntity />} />
+          <Route
+            path="/dashboard"
+            element={
+              <DashboardContainer>
+                <Dashboard />
+              </DashboardContainer>
+            }
+          />
         </Route>
       </Routes>
     </AppContainer>

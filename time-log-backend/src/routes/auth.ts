@@ -119,7 +119,7 @@ export async function authRoutes(server: FastifyInstance) {
   // 3. GET ENTITIES (GET /api/v1/auth/entities)
   // -------------------------------------------------------------------
   server.get(
-    "/auth/entities",
+    "/entities",
     { preHandler: [isAuthenticated] },
     async (request, reply) => {
       const userId = request.user.id;
@@ -136,7 +136,10 @@ export async function authRoutes(server: FastifyInstance) {
         },
       });
 
-      return reply.send(entities);
+      return reply.send({
+        entities,
+        message: "Entities fetched successfully.",
+      });
     },
   );
 
@@ -144,7 +147,7 @@ export async function authRoutes(server: FastifyInstance) {
   // 4. ADD ENTITY (POST /api/v1/auth/entities)
   // -------------------------------------------------------------------
   server.post(
-    "/auth/entities",
+    "/entities",
     { preHandler: [isAuthenticated] },
     async (request, reply) => {
       const { name } = request.body as { name: string };
@@ -155,7 +158,57 @@ export async function authRoutes(server: FastifyInstance) {
         },
       });
 
-      return reply.send(entity);
+      return reply.send({
+        entity,
+        message: "Entity created successfully.",
+      });
+    },
+  );
+  // 5. ADD USER TO ENTITY (POST /api/v1/auth/entities/:entityId/users)
+  server.put(
+    "/entities/:entityId/users",
+    { preHandler: [isAuthenticated] },
+    async (request, reply) => {
+      const { entityId } = request.params as { entityId: string };
+      const { userId } = request.body as { userId: number };
+
+      try {
+        // Check if the entity exists
+        const entity = await prisma.entity.findUnique({
+          where: { id: parseInt(entityId, 10) },
+        });
+
+        if (!entity) {
+          return reply.code(404).send({ message: "Entity not found." });
+        }
+
+        // Check if the user exists
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          return reply.code(404).send({ message: "User not found." });
+        }
+
+        // Add the user to the entity
+        const userEntity = await prisma.userEntity.create({
+          data: {
+            userId: userId,
+            entityId: parseInt(entityId, 10),
+          },
+        });
+
+        return reply.send({
+          userEntity,
+          message: "User added to entity successfully.",
+        });
+      } catch (error) {
+        request.log.error(error);
+        return reply
+          .code(500)
+          .send({ message: "Internal server error. " + error });
+      }
     },
   );
 }
