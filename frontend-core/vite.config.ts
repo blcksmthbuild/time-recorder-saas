@@ -4,10 +4,12 @@
 
     export default defineConfig(({ mode }) => {
       const env = loadEnv(mode, process.cwd(), "");
-      const remoteUrl = env.VITE_TIMELOG_ENTRY ? env.VITE_TIMELOG_ENTRY : "http://localhost:8082/dist/assets/remoteEntry.js";
+      const remoteUrlTimeLog = env.VITE_TIMELOG_ENTRY ? env.VITE_TIMELOG_ENTRY : "http://localhost:8082/dist/assets/remoteEntry.js";
+      const remoteUrlAiAgent = env.VITE_AI_AGENT_ENTRY ? env.VITE_AI_AGENT_ENTRY : "http://localhost:8083/dist/assets/remoteEntry.js";
 
       console.log("--------------------------------");
-      console.log("TIMELOG REMOTE URL", remoteUrl);
+      console.log("TIMELOG REMOTE URL", remoteUrlTimeLog);
+      console.log("AI AGENT REMOTE URL", remoteUrlAiAgent);
       console.log("--------------------------------");
 
       return {
@@ -16,7 +18,8 @@
           federation({
             name: "core_shell",
             remotes: {
-              timelog_plugin_app: remoteUrl,
+              timelog_plugin_app: remoteUrlTimeLog,
+              ai_agent_plugin_app: remoteUrlAiAgent,
             },
             shared: ["react", "react-dom", "react-router-dom", "@mui/material"],
           }),

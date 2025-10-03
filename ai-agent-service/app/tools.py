@@ -16,6 +16,27 @@ class LogTimeInput(BaseModel):
     task_name: str = Field(description="Short description of the task you worked on.")
     monday_client_id: str = Field(description="Client identifier to which the task belongs.")
 
+class CreateTaskInput(BaseModel):
+    """Input parameters for creating a new task."""
+    project_identifier: str = Field(description="Project identifier, e.g., 'UX redesign'")
+    task_identifier: str = Field(description="Task identifier, e.g., 'Internal Meeting', 'Code Review'")
+    description: Optional[str] = Field(description="Optional detailed description of the task.")
+
+class GetTimeReportInput(BaseModel):
+    """Input parameters for generating a time log report."""
+    start_date: str = Field(description="Start date for the report (YYYY-MM-DD format).")
+    end_date: str = Field(description="End date for the report (YYYY-MM-DD format).")
+    user_id: Optional[int] = Field(description="Optional user ID for filtering the report.")
+
+class ListMondayClientsInput(BaseModel):
+    """Input parameters for listing Monday.com clients."""
+    user_id: Optional[int] = Field(description="Optional user ID for filtering the clients.")
+
+class GetTopProjectSummaryInput(BaseModel):
+    """Input parameters for getting the top project summary."""
+    start_date: Optional[str] = Field(description="Start date for the aggregation (YYYY-MM-DD format).")
+    end_date: Optional[str] = Field(description="End date for the aggregation (YYYY-MM-DD format).")
+
 # -------------------------------------------------------------------
 # 2. TOOL IMPLEMENTATIONS
 # ⚠️ Only Pydantic-style arguments are accepted (permissions handled in main.py)
@@ -52,7 +73,6 @@ def create_new_task(project_identifier: str, task_identifier: str, description: 
     """
     pass 
 
-
 def get_time_report(start_date: str, end_date: str, user_id: Optional[int] = None) -> Dict[str, Any]:
     """
     Generates a time log report for a specified date range.
@@ -69,7 +89,8 @@ def get_time_report(start_date: str, end_date: str, user_id: Optional[int] = Non
     """
     pass
 
-def list_monday_clients() -> Dict[str, Any]:
+
+def list_monday_clients(user_id: Optional[int] = None) -> Dict[str, Any]:
     """
     Retrieves a list of all clients/boards from the external Monday.com system. 
     This is necessary for the AI Agent to identify existing clients.
@@ -112,21 +133,25 @@ ALL_TOOLS = [
     },
     {
         "name": "create_new_task",
+        "input_model": CreateTaskInput,
         "func": create_new_task,
         "description": "Used to create a new task within an existing project in the external system (e.g., Monday.com). Requires 'admin' role."
     },
     {
         "name": "get_time_report",
+        "input_model": GetTimeReportInput,
         "func": get_time_report,
         "description": "Used to generate a time log report based on a date range and optionally a specific user. This is key for answering summary questions."
     },
     {
         "name": "list_monday_clients",
+        "input_model": ListMondayClientsInput,
         "func": list_monday_clients,
         "description": "Used to fetch the current list of clients (projects/boards) from Monday.com."
     },
     {
         "name": "get_top_project_summary",
+        "input_model": GetTopProjectSummaryInput,
         "func": get_top_project_summary,
         "description": "Used by the Admin to determine which single project has the most logged hours in a given period."
     },

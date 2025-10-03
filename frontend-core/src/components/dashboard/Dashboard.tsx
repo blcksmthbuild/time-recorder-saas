@@ -8,7 +8,7 @@ export const Dashboard = (): React.ReactNode => {
   return (
     <div className="container">
       <div>
-        <h1>Welcome! {user?.id}</h1>
+        <h1>Welcome! {user?.email}</h1>
         <button onClick={() => logout()} className="btn-submit">
           logout
         </button>

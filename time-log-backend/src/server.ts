@@ -7,6 +7,7 @@ import { authRoutes } from "./routes/auth";
 import { pluginRegistryRoutes } from "./routes/pluginRegistry";
 import { timelogRoutes } from "./routes/timelog";
 import { startDailyReportJob } from "./jobs/dailyReport";
+import { aiAgentRoutes } from "./routes/chat";
 
 const prisma = new PrismaClient();
 
@@ -27,6 +28,7 @@ const startServer = async () => {
   server.register(authRoutes, { prefix: "/api/v1/auth" });
   server.register(pluginRegistryRoutes, { prefix: "/api/v1/registry" });
   server.register(timelogRoutes, { prefix: "/api/v1/timelog" });
+  server.register(aiAgentRoutes, { prefix: "/api/v1/ai" });
 
   server.get("/api/v1/health", async (request, reply) => {
     try {

@@ -7,6 +7,7 @@ services:
   core-shell:
     environment:
       VITE_TIMELOG_ENTRY: http://localhost:8082/dist/assets/remoteEntry.js
+      VITE_AI_AGENT_ENTRY: http://localhost:8083/dist/assets/remoteEntry.js
     build:
       context: ./frontend-core
       dockerfile: Dockerfile
@@ -19,6 +20,7 @@ services:
     depends_on:
       - fastify-backend
       - timelog-plugin
+      - ai-agent-plugin
 
   # ----------------------------------------------------
   # 2. TIMELOG PLUGIN (Remote Frontend / Micro Frontend)
@@ -50,12 +52,14 @@ services:
       - "3000:3000" # Hozzáférés a Fastify API-hoz a http://localhost:3000 címen
     environment:
       # Fontos: A Fastify belső DB-címe a szolgáltatásnév lesz
+      AI_AGENT_HOST: ai-agent-service
       DATABASE_URL: postgresql://user:password@db:5432/timelogdb
       NODE_ENV: production
       JWT_SECRET: "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.owv7q9nVbW5tqUezF_G2nHTra-ANW3HqW9epyVwh08Y-Z-FKsnG8eBIpC4GTfTVU"
     command: sh -c "npx prisma migrate deploy && npm start"
     depends_on:
       - db
+      - ai-agent-service
 
   # ----------------------------------------------------
   # 4. POSTGRESQL DATABASE
@@ -74,3 +78,39 @@ services:
 
 volumes:
   postgres_data:
+
+# ----------------------------------------------------
+# 5. AI-AGENT SERVICE (Python Logic)
+# ----------------------------------------------------
+ai-agent-service:
+  build:
+    context: ./ai-agent-service # Path to your Python code (main.py)
+    dockerfile: Dockerfile
+  container_name: ai-agent-service
+  # 💡 CRITICAL: Expose the port used in your Node.js code (4000)
+  expose:
+    - "4000"
+  environment:
+    # 💡 CRITICAL: Set the PORT env variable for uvicorn run
+    PORT: 4000
+
+    MONDAY_API_KEY: eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjU2OTQ1NDE3MSwiYWFpIjoxMSwidWlkIjo5MDAzNzY2OCwiaWFkIjoiMjAyNS0xMC0wMlQxNjo0MTozMC43MzJaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MzE3MzkzNDgsInJnbiI6ImV1YzEifQ.Fm2TizWJuMjuuHesaC8FoK-e3MJUp0UvkIvZrNW7Dso
+    MONDAY_PROJECT_BOARD_ID: 5024970082
+    FASTIFY_API_URL: http://fastify-backend:3000/api/v1
+  # This container needs Fastify and the DB to be running if it calls them on startup
+  depends_on:
+    - fastify-backend
+    - db
+
+  # ----------------------------------------------------
+  # 6. AI-AGENT PLUGIN (Remote Frontend / Micro Frontend)
+  # ----------------------------------------------------
+  ai-agent-plugin:
+    build:
+      context: ./ai-agent-plugin
+      dockerfile: Dockerfile
+    container_name: ai-agent-plugin
+    expose:
+      - "80"
+    ports:
+      - "8083:80"

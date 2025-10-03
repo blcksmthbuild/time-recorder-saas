@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginMutation = useLoginData({
     mutationKey: ["user"],
     onSuccess: (data) => {
-      const { token, userId, role } = data.data.user;
+      const { token, userId, role, email } = data.data.user;
       console.log("--------------------------------");
       console.log("LOGIN MUTATION DATA", data.data);
       console.log("--------------------------------");
@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user: {
           id: userId,
           role: role as "admin" | "user",
+          email: email as string,
           selectedEntityId: null,
           token,
         },
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           user: {
             id: userId,
             role: role as "admin" | "user",
+            email: email as string,
             selectedEntityId: null,
             token,
           },

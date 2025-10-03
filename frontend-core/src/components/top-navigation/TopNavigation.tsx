@@ -33,16 +33,10 @@ export const TopNavigation = () => {
   return (
     <AppBar position="static" color="primary">
       <Toolbar>
-        {/* <Typography
-          variant="h6"
-          component="div"
-          sx={{ cursor: "pointer" }}
-          onClick={() => navigate("/")}
-        >
-          Time Recorder
-        </Typography> */}
-
         <Box sx={{ flexGrow: 1, ml: 4 }}>
+          <Button color="inherit" onClick={() => navigate("/dashboard")}>
+            Dashboard
+          </Button>
           {isLoading ? (
             <Typography variant="caption" color="inherit">
               Loading...

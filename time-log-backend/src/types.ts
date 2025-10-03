@@ -95,3 +95,15 @@ export type TimeLogBody = {
 
   durationHours: number;
 };
+
+export type ChatBody = {
+  prompt: string;
+  role: string;
+  email: string;
+};
+
+export type ChatSuccessResponse = {
+  response: string;
+  tool_used: string | null;
+  tool_output: string | null;
+};

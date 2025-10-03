@@ -8,6 +8,7 @@ interface LoginData {
   token: string;
   userId: number;
   role: string;
+  email: string;
 }
 
 interface LoginResponse {

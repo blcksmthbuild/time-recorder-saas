@@ -8,6 +8,7 @@ import { DashboardContainer } from "./components/dashboard-container/DashboardCo
 import { SelectEntity } from "./components/select-entity/SelectEntity";
 import { usePluginRegistry } from "./components/plugins/usePluginRegistry";
 import RemotePluginWrapper from "./components/plugins/RemotePluginWrapper";
+import { useAuth } from "./auth/useAuth";
 
 const AppContainer = styled.div`
   display: flex;
@@ -19,6 +20,7 @@ const AppContainer = styled.div`
 const AppRoutes = () => {
   const registryQuery = usePluginRegistry();
   const registryMap = registryQuery.data || {};
+  const { user } = useAuth();
 
   return (
     <Routes>
@@ -44,7 +46,7 @@ const AppRoutes = () => {
                   <Suspense
                     fallback={<div>{registryMap[key].name} Loading...</div>}
                   >
-                    <RemotePluginWrapper pluginKey={key} />
+                    <RemotePluginWrapper pluginKey={key} user={user} />
                   </Suspense>
                 }
               />

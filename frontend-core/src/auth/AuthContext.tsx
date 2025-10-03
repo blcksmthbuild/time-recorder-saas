@@ -6,6 +6,7 @@ const AUTH_STORAGE_KEY = "userAuth";
 export interface UserData {
   id: number;
   role: "admin" | "user";
+  email: string;
   selectedEntityId: number | null;
   token: string;
 }

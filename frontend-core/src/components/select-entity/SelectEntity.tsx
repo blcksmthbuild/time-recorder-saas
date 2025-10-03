@@ -14,7 +14,7 @@ export const SelectEntity = () => {
     {
       enabled: !!user?.token,
       queryKey: ["entities", user?.token],
-    },
+    }
   );
 
   if (isLoading) return <div>Loading...</div>;
@@ -34,6 +34,10 @@ export const SelectEntity = () => {
     });
     navigate("/dashboard");
   };
+
+  if (entities?.length === 0) {
+    navigate("/dashboard");
+  }
 
   return (
     <Page>

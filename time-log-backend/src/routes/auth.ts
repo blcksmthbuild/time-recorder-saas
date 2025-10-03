@@ -112,6 +112,7 @@ export async function authRoutes(server: FastifyInstance) {
           token,
           userId: user.id,
           role: user.role,
+          email: user.email,
         },
       });
     } catch (error) {
