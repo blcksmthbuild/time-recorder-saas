@@ -1,6 +1,5 @@
 import { createContext } from "react";
 import type { useLoginMutation } from "./useLoginMutation";
-import type { useRegisterMutation } from "./useRegisterMutation";
 
 const AUTH_STORAGE_KEY = "userAuth";
 
@@ -29,9 +28,7 @@ export interface RegisterCredentials {
 interface AuthContextType {
   user: UserData | null;
   token: string | null;
-  isAuthenticated: boolean;
   loginMutation: ReturnType<typeof useLoginMutation>; // A Tanstack Mutation hook
-  registerMutation: ReturnType<typeof useRegisterMutation>; // A Tanstack Mutation hook
   logout: () => void;
   mode: "login" | "register";
   setMode: (mode: "login" | "register") => void;

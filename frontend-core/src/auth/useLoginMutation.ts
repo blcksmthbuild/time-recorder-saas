@@ -15,5 +15,8 @@ export const useLoginMutation = () => {
       );
       return response.data;
     },
+    onSuccess: (data: AuthResponse): AuthResponse => {
+      return data;
+    },
   });
 };
