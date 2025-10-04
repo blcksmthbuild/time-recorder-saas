@@ -183,3 +183,23 @@ Ensure plugins are properly registered in the backend registry before trying to 
 2. **Entity Creation**: Create at least one entity before users can access the dashboard
 3. **API Keys**: Ensure all required API keys are configured in the environment
 4. **Ports**: Make sure all required ports (80, 3000, 4000, 8082, 8083, 5432) are available
+
+## ⚠️ Known Issues
+
+### Monday.com Integration
+
+- **Status**: Not working - Monday.com access issues encountered during development
+- **Impact**: AI agent cannot create projects or tasks in Monday.com
+- **Workaround**: The AI agent will still respond but Monday.com operations will fail
+
+### Email Service
+
+- **Status**: Disabled - Twilio/SendGrid account was shut down
+- **Impact**: Email notifications and reports cannot be sent
+- **Note**: The email logic is implemented and ready, just needs a valid email service API key
+
+### Missing Features
+
+- Email notifications for time log reports
+- Monday.com project and task creation via AI agent
+- Email-based user registration confirmations

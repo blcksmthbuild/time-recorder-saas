@@ -2,8 +2,9 @@ import os
 import requests
 from typing import Dict, Any, Optional
 
-MONDAY_API_URL = "https://api.monday.com/v2"
 API_KEY = os.getenv("MONDAY_API_KEY")
+MONDAY_API_URL = os.getenv("MONDAY_API_URL")
+MONDAY_PROJECT_BOARD_ID = os.getenv("MONDAY_PROJECT_BOARD_ID")
 
 class MondayClient:
     """
@@ -24,7 +25,7 @@ class MondayClient:
             "Authorization": API_KEY,
             "Content-Type": "application/json"
         }
-        self.board_id = os.getenv("MONDAY_PROJECT_BOARD_ID", "12345")
+        self.board_id = MONDAY_PROJECT_BOARD_ID
 
         if not self.board_id:
             print("WARNING: MONDAY_PROJECT_BOARD_ID is not set. Project creation tools may fail.")
@@ -55,12 +56,6 @@ class MondayClient:
     # ----------------------------------------------------------------
     def create_project(self, name: str, client_id: str) -> Dict[str, Any]:
 
-
-        # NOTE: A client_id-t a Monday-on egy oszlopba kellene írni. 
-        # A legegyszerűbb, ha egy szöveges oszlopot ("text_column") feltételezünk.
-        # Itt csak az Item-et hozzuk létre a fő boardon (Ami a projektet reprezentálja).
-        
-
         if not self.board_id:
             return {"error": "CONFIGURATION_ERROR", "message": "MONDAY_PROJECT_BOARD_ID is missing for project creation."}
 
@@ -86,10 +81,6 @@ class MondayClient:
 
     def _get_project_item_id(self, project_name: str) -> Optional[int]:
         """Finds the Project Item ID by name on the main Board."""
-        
-        # 💡 Important: This query will fetch every Item from the board, 
-        # which can cause performance issues with large boards. 
-        # Monday API does not support direct "search by Item Name" functionality for Items.
         
         query = f"""query {{
           boards(ids: [{self.board_id}]) {{
