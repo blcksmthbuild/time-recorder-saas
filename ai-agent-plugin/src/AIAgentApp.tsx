@@ -30,7 +30,7 @@ const MessagesWindow = styled(Paper)({
   backgroundColor: "#f5f5f5",
 });
 
-const MessageBubble = styled("div")<{ role: "user" | "agent" }>(
+const MessageBubble = styled("div")<{ role: "user" | "admin" | "agent" }>(
   ({ role, theme }) => ({
     padding: "10px 15px",
     borderRadius: "15px",
@@ -43,14 +43,19 @@ const MessageBubble = styled("div")<{ role: "user" | "agent" }>(
   })
 );
 
-import type { UserData } from "../../frontend-core/src/auth/AuthContext";
+interface UserData {
+  id: number;
+  email: string;
+  role: "user" | "admin";
+  token: string;
+}
 
 interface AIAgentAppProps {
   user?: UserData;
 }
 
 interface ChatMessage {
-  role: "user" | "agent";
+  role: "user" | "admin" | "agent";
   content: string;
   toolUsed?: string;
   toolOutput?: unknown;

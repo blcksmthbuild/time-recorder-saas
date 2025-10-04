@@ -11,12 +11,11 @@ services:
     build:
       context: ./frontend-core
       dockerfile: Dockerfile
-      # Átadjuk a Fastify URL-t a build időben
       args:
         VITE_FASTIFY_API_URL: http://localhost:3000/api/v1
     container_name: core-shell
     ports:
-      - "80:80" # Hozzáférés a Core Shell-hez a http://localhost:80 címen
+      - "80:80" # access to the Core Shell at http://localhost:80
     depends_on:
       - fastify-backend
       - timelog-plugin
@@ -30,28 +29,22 @@ services:
       context: ./timelog-plugin
       dockerfile: Dockerfile
     container_name: timelog-plugin
-    # Ezen a belső hálózati porton fut a NGINX, és ezen a címen éri el a Core Shell
     expose:
       - "80"
     ports:
       - "8082:80"
-    # Fontos: A Vite configban beállított 8081-es portot most az NGINX 80-as portjára képeztük le!
-    # A Core Shell Vite configjában lévő URL-t frissítened kell erre a belső hálózati névre:
-    # timelog_plugin_app: 'timelog_plugin_app@http://timelog-plugin/assets/remoteEntry.js'
-    # Ezt a lépést kézzel kell elvégezned a frontend-core/vite.config.ts-ben!
 
   # ----------------------------------------------------
   # 3. FASTIFY BACKEND (TimeLog/Auth API)
   # ----------------------------------------------------
   fastify-backend:
     build:
-      context: ./time-log-backend # Feltételezett elérési út
+      context: ./time-log-backend
       dockerfile: Dockerfile
     container_name: fastify-backend
     ports:
-      - "3000:3000" # Hozzáférés a Fastify API-hoz a http://localhost:3000 címen
+      - "3000:3000" # access to the Fastify API at http://localhost:3000
     environment:
-      # Fontos: A Fastify belső DB-címe a szolgáltatásnév lesz
       AI_AGENT_HOST: ai-agent-service
       DATABASE_URL: postgresql://user:password@db:5432/timelogdb
       NODE_ENV: production
@@ -59,7 +52,6 @@ services:
     command: sh -c "npx prisma migrate deploy && npm start"
     depends_on:
       - db
-      - ai-agent-service
 
   # ----------------------------------------------------
   # 4. POSTGRESQL DATABASE
@@ -76,31 +68,25 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-volumes:
-  postgres_data:
-
-# ----------------------------------------------------
-# 5. AI-AGENT SERVICE (Python Logic)
-# ----------------------------------------------------
-ai-agent-service:
-  build:
-    context: ./ai-agent-service # Path to your Python code (main.py)
-    dockerfile: Dockerfile
-  container_name: ai-agent-service
-  # 💡 CRITICAL: Expose the port used in your Node.js code (4000)
-  expose:
-    - "4000"
-  environment:
-    # 💡 CRITICAL: Set the PORT env variable for uvicorn run
-    PORT: 4000
-
-    MONDAY_API_KEY: eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjU2OTQ1NDE3MSwiYWFpIjoxMSwidWlkIjo5MDAzNzY2OCwiaWFkIjoiMjAyNS0xMC0wMlQxNjo0MTozMC43MzJaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MzE3MzkzNDgsInJnbiI6ImV1YzEifQ.Fm2TizWJuMjuuHesaC8FoK-e3MJUp0UvkIvZrNW7Dso
-    MONDAY_PROJECT_BOARD_ID: 5024970082
-    FASTIFY_API_URL: http://fastify-backend:3000/api/v1
-  # This container needs Fastify and the DB to be running if it calls them on startup
-  depends_on:
-    - fastify-backend
-    - db
+  # ----------------------------------------------------
+  # 5. AI-AGENT SERVICE (Python Logic)
+  # ----------------------------------------------------
+  ai-agent-service:
+    build:
+      context: ./ai-agent-service
+      dockerfile: Dockerfile
+    container_name: ai-agent-service
+    expose:
+      - "4000"
+    environment:
+      PORT: 4000
+      GEMINI_API_KEY: AIzaSyDbqM6TC0Gf_I22bycIk1xJKGPFWKa0cWQ
+      MONDAY_API_KEY: eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjU2OTQ1NDE3MSwiYWFpIjoxMSwidWlkIjo5MDAzNzY2OCwiaWFkIjoiMjAyNS0xMC0wMlQxNjo0MTozMC43MzJaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MzE3MzkzNDgsInJnbiI6ImV1YzEifQ.Fm2TizWJuMjuuHesaC8FoK-e3MJUp0UvkIvZrNW7Dso
+      MONDAY_PROJECT_BOARD_ID: 5024970082
+      FASTIFY_API_URL: http://fastify-backend:3000/api/v1
+    depends_on:
+      - fastify-backend
+      - db
 
   # ----------------------------------------------------
   # 6. AI-AGENT PLUGIN (Remote Frontend / Micro Frontend)
@@ -114,3 +100,6 @@ ai-agent-service:
       - "80"
     ports:
       - "8083:80"
+
+volumes:
+  postgres_data:

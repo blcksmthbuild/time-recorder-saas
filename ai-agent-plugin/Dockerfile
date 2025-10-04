@@ -4,16 +4,16 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# Vite build a statikus fájlok generálásához
+# Vite build a static files generation
 RUN npm run build 
 
-# NGINX a statikus fájlok gyors kiszolgálásához
+# NGINX a static files fast serving
 FROM nginx:alpine
 
-# Másoljuk át a buildelt fájlokat az NGINX root könyvtárba
+# Copy the built files to the NGINX root directory
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html/dist
 
-# NGINX alapértelmezett port
+# NGINX default port
 EXPOSE 80
