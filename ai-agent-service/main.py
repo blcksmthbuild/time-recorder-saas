@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field
 from app.fastify_api_client import FastifyApiClient 
 from app.monday_client import MondayClient 
 from app.tools import ALL_TOOLS 
-import google.generativeai as genai
-from google.generativeai import types
+from google import genai
+from google.genai import types
 import json
 
 load_dotenv()
@@ -18,11 +18,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+client = genai.Client() 
 GEMINI_MODEL = "gemini-2.5-flash-lite"
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-model = genai.GenerativeModel(GEMINI_MODEL)
+
+
 
 # -------------------------------------------------------------------
 # Request Body Model for the /chat route
@@ -41,12 +42,12 @@ async def chat_with_agent(request: ChatRequest):
     try:
         fastify_client = FastifyApiClient(request.user_role)
         monday_client = MondayClient()
-        
+
         tools_for_llm = [t["func"] for t in ALL_TOOLS]
 
-        print("--------------------------------");
-        print("tools_for_llm", tools_for_llm);
-        print("--------------------------------");
+
+
+
 
         system_message = (
             f"You are an AI assistant in the company's time tracking system. "
@@ -55,108 +56,142 @@ async def chat_with_agent(request: ChatRequest):
             f"Only invoke a Tool if the user request and the current role allow it."
         )
 
-        # Convert tools to the new format
-        tools_for_model = []
-        for tool in ALL_TOOLS:
-            tools_for_model.append({
-                "function_declarations": [{
-                    "name": tool["name"],
-                    "description": tool["description"],
-                    "parameters": {
-                        "type": "object",
-                        "properties": {}
-                    }
-                }]
-            })
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[request.prompt],
+            config=types.GenerateContentConfig(
+                tools=tools_for_llm,
+                system_instruction=system_message,
+                tool_config=types.ToolConfig(
+                    function_calling_config=types.FunctionCallingConfig(
+                        mode="ANY"  
+                    )
+                )
+            )
 
-        response = model.generate_content(
-            request.prompt,
-            tools=tools_for_model,
-            system_instruction=system_message
+
+
+
+
+
         )
 
-        print("--------------------------------");
-        print("response", response);
-        print("--------------------------------");
-
-        if response.candidates and response.candidates[0].content.parts:
-            parts = response.candidates[0].content.parts
-            function_calls = [part for part in parts if hasattr(part, 'function_call')]
+        if response.function_calls:
+            function_call = response.function_calls[0]
+            tool_name = function_call.name
+            tool_args = dict(function_call.args)
             
-            if function_calls:
-                function_call = function_calls[0].function_call
-                tool_name = function_call.name
-                tool_args = dict(function_call.args)
+            tool_definition = next(
+                (t for t in ALL_TOOLS if t["name"] == tool_name), None
+            )
+
+            if tool_definition:
                 
-                tool_definition = next(
-                    (t for t in ALL_TOOLS if t["name"] == tool_name), None
+                tool_output = {}
+                
+                # -----------------------------------------------------------
+                # MONDAY.COM TOOL-OK (Admin funkciók)
+                # -----------------------------------------------------------
+                if tool_name == 'create_new_project':
+                    if request.user_role != 'admin':
+                        tool_output = {"error": "PERMISSION_DENIED", "message": "Only Admins can create a new project."}
+                    else:
+                        tool_output = monday_client.create_project(**tool_args)
+                
+                elif tool_name == 'create_new_task':
+                    if request.user_role != 'admin':
+                        tool_output = {"error": "PERMISSION_DENIED", "message": "Only Admins can create a new task."}
+                    else:
+                        tool_output = monday_client.create_task(**tool_args)
+
+                elif tool_name == 'list_monday_clients':
+                    tool_output = monday_client.list_clients()
+
+                # -----------------------------------------------------------
+                # FASTIFY TOOL-OK (Normal User funkciók)
+                # -----------------------------------------------------------
+                elif tool_name == 'log_user_time':
+                    tool_output = fastify_client.log_time(**tool_args)
+
+                elif tool_name == 'get_time_report':
+                    tool_output = fastify_client.get_report(**tool_args)
+
+                elif tool_name == 'get_top_project_summary':
+                    tool_output = fastify_client.get_top_project(**tool_args)
+
+                tool_response_part = types.Part.from_function_response(
+                    name=tool_name, 
+                    response={"result": tool_output}
                 )
 
-                if tool_definition:
-                    tool_output = {}
+                conversation_history = [
+                    request.prompt,
+                    types.Content(
+                        role="model",
+                        parts=[types.Part.from_function_call(name=function_call.name, args=dict(function_call.args))]
+                    ),
+                    types.Content(role="tool", parts=[tool_response_part])
+                ]
 
-                    print("--------------------------------");
-                    print("tool_output", tool_output);
-                    print("--------------------------------");
-                
-                    # -----------------------------------------------------------
-                    # MONDAY.COM TOOL-OK (Admin functions)
-                    # -----------------------------------------------------------
-                    if tool_name == 'create_new_project':
-                        if request.user_role != 'admin':
-                            tool_output = {"error": "PERMISSION_DENIED", "message": "Only Admins can create a new project."}
-                        else:
-                            tool_output = monday_client.create_project(**tool_args)
-                    
-                    elif tool_name == 'create_new_task':
-                        if request.user_role != 'admin':
-                            tool_output = {"error": "PERMISSION_DENIED", "message": "Only Admins can create a new task."}
-                        else:
-                            tool_output = monday_client.create_task(**tool_args)
+                second_response = client.models.generate_content(
+                    model=GEMINI_MODEL,
+                    contents=conversation_history,
+                    config=types.GenerateContentConfig(
+                        tools=tools_for_llm,
 
-                    elif tool_name == 'list_monday_clients':
-                        tool_output = monday_client.list_clients()
-                    
-                    # -----------------------------------------------------------
-                    # FASTIFY TOOL-OK (Normal User functions)
-                    # -----------------------------------------------------------
-                    elif tool_name == 'log_user_time':
-                        tool_output = fastify_client.log_time(**tool_args)
 
-                    elif tool_name == 'get_time_report':
-                        tool_output = fastify_client.get_report(**tool_args)
 
-                    elif tool_name == 'get_top_project_summary':
-                        tool_output = fastify_client.get_top_project(**tool_args)
 
-                    # Create a follow-up conversation with the tool result.
-                    follow_up_prompt = f"User asked: {request.prompt}\n\nTool '{tool_name}' was called with result: {tool_output}\n\nPlease provide a natural response to the user."
-                    
-                    second_response = model.generate_content(
-                        follow_up_prompt,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         system_instruction=system_message
                     )
+                )
 
-                    print("--------------------------------");
-                    print("second_response", second_response);
-                    print("--------------------------------");
+                return {
+                    "response": second_response.text,
+                    "tool_used": tool_name,
+                    "tool_output": tool_output
+                }
 
-                    return {
-                        "response": second_response.text,
-                        "tool_used": tool_name,
-                        "tool_output": tool_output
-                    }
 
-        print("--------------------------------");
-        print("responseweeee", response);
-        print("--------------------------------");
+
+
+
+
+
+
 
         return {
             "response": response.text,
             "tool_used": None,
             "tool_output": None
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

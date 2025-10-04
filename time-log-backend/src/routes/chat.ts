@@ -34,7 +34,11 @@ export async function aiAgentRoutes(server: FastifyInstance) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt, role, email }),
+        body: JSON.stringify({
+          prompt,
+          user_role: role,
+          user_email: email,
+        }),
       });
 
       console.log("--------------------------------");
