@@ -42,13 +42,7 @@ async def chat_with_agent(request: ChatRequest):
     try:
         fastify_client = FastifyApiClient(request.user_role)
         monday_client = MondayClient()
-
         tools_for_llm = [t["func"] for t in ALL_TOOLS]
-
-
-
-
-
         system_message = (
             f"You are an AI assistant in the company's time tracking system. "
             f"Current role: {request.user_role}. "
@@ -68,12 +62,6 @@ async def chat_with_agent(request: ChatRequest):
                     )
                 )
             )
-
-
-
-
-
-
         )
 
         if response.function_calls:
@@ -138,36 +126,6 @@ async def chat_with_agent(request: ChatRequest):
                     contents=conversation_history,
                     config=types.GenerateContentConfig(
                         tools=tools_for_llm,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         system_instruction=system_message
                     )
                 )
@@ -177,14 +135,6 @@ async def chat_with_agent(request: ChatRequest):
                     "tool_used": tool_name,
                     "tool_output": tool_output
                 }
-
-
-
-
-
-
-
-
 
         return {
             "response": response.text,
