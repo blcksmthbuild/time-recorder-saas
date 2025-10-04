@@ -198,6 +198,10 @@ Ensure plugins are properly registered in the backend registry before trying to 
 - **Impact**: Email notifications and reports cannot be sent
 - **Note**: The email logic is implemented and ready, just needs a valid email service API key
 
+### AI Agent:
+
+- **Satus**: Logging works. Other tools are not 100% configured and ready.
+
 ### Missing Features
 
 - Email notifications for time log reports
